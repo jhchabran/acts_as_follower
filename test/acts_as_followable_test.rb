@@ -50,6 +50,25 @@ class ActsAsFollowableTest < Test::Unit::TestCase
       should_change "Follow.count", :by => -1
       should_change "@sam.all_following.size", :by => -1
     end
+    
+    context "blocking a follower" do
+      setup do
+        @jon.block(@sam)
+      end
+      
+      should "remove him from followers" do 
+        assert_equal 0, @jon.followers_count
+      end
+      
+      should "not be able to follow again" do
+        @sam.follow(@jon)
+        assert_equal 0, @jon.followers_count
+      end
+      
+      should "not be present when listing followers" do 
+        assert_equal [], @jon.followers
+      end
+    end
   end
   
 end

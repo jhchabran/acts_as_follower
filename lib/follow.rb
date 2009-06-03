@@ -6,7 +6,11 @@ class Follow < ActiveRecord::Base
   named_scope :descending, :order => "created_at DESC"
   
   # NOTE: Follows belong to the "followable" interface, and also to followers
-  belongs_to :followable, :polymorphic => true
-  belongs_to :follower,   :polymorphic => true
+  belongs_to :followable,         :polymorphic => true
+  belongs_to :follower,           :polymorphic => true
   
+  def block!
+    self.blocked = true
+    self.save!
+  end
 end

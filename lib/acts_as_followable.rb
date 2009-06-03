@@ -23,18 +23,39 @@ module ActiveRecord #:nodoc:
         
         # Returns the number of followers a record has.
         def followers_count
-          self.follows.size
+          self.follows.find(:all, :conditions => {:blocked => false}).size
+        end
+        
+        def blocked_followers_count
+          self.follows.find(:all, :conditions => {:blocked => true}).size
         end
         
         # Returns the following records.
         def followers
-          Follow.find(:all, :include => [:follower], :conditions => ["followable_id = ? AND followable_type = ?", 
-              self.id, parent_class_name(self)]).collect {|f| f.follower }
+          Follow.find(:all, :include => [:follower], :conditions => ["blocked = ? AND followable_id = ? AND followable_type = ?", 
+              false, self.id, parent_class_name(self)]).collect {|f| f.follower }
+        end
+        
+        def follow_for(follower)
+          Follow.find(:first, :conditions => ["followable_id = ? AND followable_type = ? AND follower_id = ? AND follower_type = ?", self.id, parent_class_name(self), follower.id, parent_class_name(follower)])
         end
         
         # Returns true if the current instance is followed by the passed record.
         def followed_by?(follower)
-          Follow.find(:first, :conditions => ["followable_id = ? AND followable_type = ? AND follower_id = ? AND follower_type = ?", self.id, parent_class_name(self), follower.id, parent_class_name(follower)]) ? true : false
+          f = follow_for(follower)
+          f ? !f.blocked : false
+        end
+        
+        def block(follower)
+          follow_for(follower) ? block_existing_follow(follower) : block_future_follow(follower)
+        end
+        
+        def block_future_follow(follower)
+          follows.create(:followable => self, :follower => follower, :blocked => true)
+        end
+        
+        def block_existing_follow(follower)
+          follow_for(follower).block!
         end
         
       end
