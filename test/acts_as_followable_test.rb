@@ -69,6 +69,17 @@ class ActsAsFollowableTest < Test::Unit::TestCase
         assert_equal [], @jon.followers
       end
     end
+    
+    context "unblocking a follower" do
+      setup do
+        @jon.block(@sam)
+        @jon.unblock(@sam)
+      end
+      
+      should "add him as follower" do 
+        @sam.follow(@jon)
+        assert_equal 1, @jon.followers_count
+      end
+    end   
   end
-  
 end

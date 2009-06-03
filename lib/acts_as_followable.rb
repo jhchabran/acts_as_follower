@@ -50,6 +50,10 @@ module ActiveRecord #:nodoc:
           follow_for(follower) ? block_existing_follow(follower) : block_future_follow(follower)
         end
         
+        def unblock(follower)
+          follow_for(follower).try(:destroy)
+        end
+        
         def block_future_follow(follower)
           follows.create(:followable => self, :follower => follower, :blocked => true)
         end
